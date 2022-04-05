@@ -13,6 +13,9 @@ class ProjectionHead(nn.Module):
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1,1))
 
+        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
+        self.flatten = Flatten()
+
         self.model = nn.Sequential(
             nn.AdaptiveAvgPool2d((1,1)),
             Flatten(),

@@ -1,0 +1,10 @@
+#!/bin/bash
+#SBATCH --job-name="run-simclr"
+#SBATCH --output="run-simclr.out"
+#SBATCH --error="run-simclr.err"
+#SBATCH --partition=gpux1
+#SBATCH --time=24
+
+module load opence
+conda activate simclr
+python train.py
