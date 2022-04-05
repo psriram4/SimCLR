@@ -2,10 +2,6 @@ import torch
 
 
 def nt_xent_loss(out_1, out_2, temperature):
-
-    print(out_1.shape)
-    print(out_2.shape)
-
     out = torch.cat([out_1, out_2], dim=0)
     n_samples = len(out)
 

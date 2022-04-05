@@ -11,9 +11,11 @@ class ProjectionHead(nn.Module):
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
 
+        self.avg_pool = nn.AdaptiveAvgPool2d((1,1))
+
         self.model = nn.Sequential(
-            # nn.AdaptiveAvgPool2d((1,1)),
-            # Flatten(),
+            nn.AdaptiveAvgPool2d((1,1)),
+            Flatten(),
             nn.Linear(self.input_dim, self.hidden_dim, bias=True),
             nn.BatchNorm1d(self.hidden_dim),
             nn.ReLU(),

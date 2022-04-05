@@ -15,8 +15,10 @@ class SimCLR(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.nt_xent_loss = nt_xent_loss
-        self.encoder = resnet50()
+        self.encoder = resnet50(return_all_feature_maps=True)
         self.projection_head = ProjectionHead()
+        self.training_losses = []
+        self.validation_losses = []
 
         self.encoder.conv1 = nn.Conv2d(
             3, 64, 
@@ -25,7 +27,8 @@ class SimCLR(pl.LightningModule):
             padding=1, 
             bias=False 
         )
-        # self.maxpool = nn.MaxPool2d(kernel_size=1, stride=1)
+        
+
 
     def exclude_from_wt_decay(self, named_params, weight_decay, skip_list=['bn', 'bias']):
         params = []
@@ -86,9 +89,6 @@ class SimCLR(pl.LightningModule):
     def shared_step(self, batch, batch_idx):
         (img1, img2), y = batch
 
-        print(img1.shape)
-        print(img2.shape)
-
         # (b, 3, 32, 32) --> (b, 2048, 2, 2)
         h1 = self.encoder(img1)
         h2 = self.encoder(img2)
@@ -96,10 +96,6 @@ class SimCLR(pl.LightningModule):
         if isinstance(h1, list):
             h1 = h1[-1]
             h2 = h2[-1]
-            
-        print(h1.shape)
-        print(h2.shape)
-
 
         # (b, 2048, 2, 2) --> (b, 128)
         z1 = self.projection_head(h1)
@@ -113,6 +109,9 @@ class SimCLR(pl.LightningModule):
         # result = pl.TrainResult(minimize=loss)
         # result.log('train_loss', loss, on_epoch=True)
         # return result
+        self.training_losses.append(loss.detach().item())
+        self.log("training_loss", loss.detach().item())
+
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -120,4 +119,6 @@ class SimCLR(pl.LightningModule):
         # result = pl.EvalResult(checkpoint_on=loss)
         # result.log('avg_val_loss', loss) 
         # return result
+        self.validation_losses.append(loss.detach().item())
+        self.log("validation_loss", loss.detach().item())
         return loss

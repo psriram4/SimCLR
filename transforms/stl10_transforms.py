@@ -3,7 +3,7 @@ import numpy as np
 import torch 
 import torchvision.transforms as transforms
 
-class GaussianBlur(object):
+class GaussianBlur:
     def __init__(self, kernel_size, p=0.5, min=0.1, max=2.0):
         self.min = min
         self.max = max
@@ -21,8 +21,8 @@ class GaussianBlur(object):
         
         return sample
 
-class SimCLRTrainTransform(object):
-    def __init__(self, input_height=224, gaussian_blur=False, jitter_strength=1.0, normalize=None):
+class SimCLRTrainTransform:
+    def __init__(self, input_height=224, gaussian_blur=True, jitter_strength=1.0, normalize=None):
         self.input_height = input_height
         self.gaussian_blur = gaussian_blur
         self.jitter_strength = jitter_strength
@@ -43,7 +43,10 @@ class SimCLRTrainTransform(object):
         ]
 
         if self.gaussian_blur:
-            data_transforms.append(GaussianBlur(kernel_size=int(0.1 * self.input_height)))
+            kernel_size = int(0.1 * self.input_height)
+            if kernel_size % 2 == 0:
+                kernel_size += 1
+            data_transforms.append(GaussianBlur(kernel_size=kernel_size), p=0.5)
 
         data_transforms.append(transforms.ToTensor())
 
@@ -51,6 +54,10 @@ class SimCLRTrainTransform(object):
             data_transforms.append(normalize)
     
         self.train_transform = transforms.Compose(data_transforms)
+
+        # self.online_transform = transforms.Compose(
+        #     [transforms.RandomResizedCrop(self.input_height), transforms.RandomHorizontalFlip(), self.final_transform]
+        # )
 
     def __call__(self, sample):
         transform = self.train_transform
@@ -74,6 +81,7 @@ class SimCLRTestTransform(object):
             data_transforms.append(normalize)
             
         self.test_transform = transforms.Compose(data_transforms)
+        
 
     def __call__(self, sample):
         transform = self.test_transform
